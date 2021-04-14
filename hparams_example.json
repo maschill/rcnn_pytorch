@@ -1,0 +1,34 @@
+# this json contains the hyperparameter settings used for the run
+# the values need to be lists, not single values
+# you need to remove this block before using it and rename the file to hparams.json
+{
+    "num_epochs": [
+        1
+    ],
+    "threshold": [
+        25
+    ],
+    "occlusion_size": [
+        1
+    ],
+    "steps": [
+        1,
+        3
+    ],
+    "recurrence": [
+        [
+            1,
+            1,
+            1
+        ]
+    ],
+    "residual": [
+        0
+    ],
+    "batch_size": [
+        128
+    ],
+    "lr_start": [
+        0.04
+    ]
+}

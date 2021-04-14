@@ -1,0 +1,12 @@
+numpy
+matplotlib
+Pillow
+python-resources
+scikit-learn
+torchvision
+tensorflow
+torchsummary
+tensorboard
+future
+jupyter
+jupyter_contrib_nbextensions

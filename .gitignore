@@ -1,5 +1,4 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
 *.py[cod]
 *$py.class
 
@@ -127,3 +126,14 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+hparams.json
+docker_run.sh
+Runs/**
+ckpt/**
+backup/**
+jupyter/**
+cifar-10-batches-py/**
+cifar-10-python.tar.gz
+.vscode/**
+data/**
+*/__pycache__/**
