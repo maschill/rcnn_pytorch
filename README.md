@@ -1,3 +1,5 @@
-pytorch implementation based on https://github.com/cjspoerer/rcnn-sat from the
-paper Recurrent neural networks can explain flexible trading of speed and accuracy in biological vision.
-https://doi.org/10.1371/journal.pcbi.1008215
+Usaga: 
+0.[optional] build docker container and set docker_run_example.sh to correct paths (and rename to docker_run.sh)
+1. Set hyperparameters in hparams_example.json and rename to hparams.json; both hparams.json and docker_run.sh are in .gitignore
+2. execute run.py in suitable python environment or docker_run.sh 
+3. [optional] check results in tensorboard  
