@@ -40,8 +40,9 @@ class Bl_resnet(nn.Module):
 
         self.max_steps = steps
         self.threshold = threshold
+        mtype = "resnet" if residual else "noresnet"
         self.mname = (
-            f"bl{''.join([str(int(r)) for r in recurrence])}_resnet_{steps}steps"
+            f"bl{''.join([str(int(r)) for r in recurrence])}_{mtype}_{steps}steps"
         )
         self.residual = residual
         self.recurrence = recurrence
