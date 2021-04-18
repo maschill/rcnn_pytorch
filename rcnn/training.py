@@ -121,6 +121,12 @@ def training(hparams: dict,):
             if phase == "train":
                 writer.add_scalar("LR/lr", current_lr, epoch)
 
+                for name, param in model.named_parameters():
+                    if "weight" in name and param.requires_grad:
+                        if "bn" not in name:
+                            writer.add_histogram(name, param, epoch)
+                            writer.add_histogram(name + ".grad", param.grad, epoch)
+
             print(f"{phase} Loss: {epoch_loss:.4} Acc: {epoch_acc:.5}")
 
         writer.flush()
