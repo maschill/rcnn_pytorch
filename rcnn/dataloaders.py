@@ -14,7 +14,18 @@ CIFAR10_TRAIN_STD = (0.24703225141799082, 0.24348516474564, 0.26158783926049628)
 
 
 class CIFAR10(DataContainer):
-    def __init__(self, batch_size: int, s: int = 4):
+    def __init__(self, batch_size: int, s: int = 4, mode: str = "cutout"):
+        """Container for CIFAR10 dataset that provides a train, test 
+            and val dataloader 
+
+
+        Args:
+            batch_size (int): batch size
+            s (int, optional): size argument used for occlusion transform 
+                                in train and test loader. Defaults to 4.
+            mode (str, optional): mode of occlusion transform in train 
+                                and test loader. Defaults to "cutout".
+        """
         self.batch_size = batch_size
         train_ds = datasets.CIFAR10(
             root=".",
@@ -26,7 +37,7 @@ class CIFAR10(DataContainer):
                     transforms.RandomHorizontalFlip(),
                     transforms.RandomRotation(15),
                     transforms.ToTensor(),
-                    Occlusion(mode="cutout", size=s),
+                    Occlusion(mode=mode, size=s),
                     transforms.Normalize(CIFAR10_TRAIN_MEAN, CIFAR10_TRAIN_STD),
                 ]
             ),
@@ -64,7 +75,7 @@ class CIFAR10(DataContainer):
                 transform=transforms.Compose(
                     [
                         transforms.ToTensor(),
-                        Occlusion(mode="noise", size=s),
+                        Occlusion(mode=mode, size=s),
                         transforms.Normalize(CIFAR10_TRAIN_MEAN, CIFAR10_TRAIN_STD),
                     ]
                 ),
@@ -88,9 +99,18 @@ class CIFAR10(DataContainer):
         }
 
     def dl_dict(self):
+        """returns the dataloaders in a dict"""
         return self.loader_dict
 
-    def update_val_loader(self, n: int, mode: str = "cutout"):
+    def update_val_loader(self, s: int, mode: str = "cutout"):
+        """updates the val loader with new occlusion transformation params
+
+        Args:
+            n (int): size argument used for occlusion transform 
+                    in train and test loader.
+            mode (str, optional): mode of occlusion transform in train 
+                                and test loader. Defaults to "cutout".
+        """
         self.val_loader = torch.utils.data.DataLoader(
             datasets.CIFAR10(
                 root=".",
