@@ -51,7 +51,7 @@ class Bl_resnet(nn.Module):
         block0_filters = 64
         self.input_block = nn.Sequential(
             nn.Conv2d(3, block0_filters, kernel_size=3, padding=1),
-            nn.BatchNorm2d(block0_filters),
+            # nn.BatchNorm2d(block0_filters),
             nn.ReLU(),
         )
 

@@ -19,15 +19,7 @@ def training(hparams: dict,):
     """trains a model 
 
     Args:
-        hpams (dict): a dictionary containing the hyperparameters
-        num_epochs (int): number of epochs
-        threshold (int, optional): if recurrent, the threshold that 
-                    entropy needs to be below of for early output. 
-                    Defaults to 100.
-        occlusion_size (int, optional): training occlusion size. 
-                    Defaults to 4.
-        steps (int, optional): recurrent steps, >=1. 
-                    1 means feedfoward only. Defaults to 1.
+        hparams (dict): a dictionary containing the hyperparameters
     """
 
     batch_size = hparams["batch_size"]
@@ -70,7 +62,7 @@ def training(hparams: dict,):
     writer_name += "/" + starttime
 
     writer = SummaryWriter(writer_name)
-    writer.add_graph(model, torch.zeros(1, 3, 32, 32).cuda(), verbose=False)
+    writer.add_graph(model, torch.ones(1, 3, 32, 32).cuda(), verbose=False)
 
     # for tensorboard:
     hparams["recurrence"] = "".join([str(int(i)) for i in hparams["recurrence"]])
@@ -124,8 +116,9 @@ def training(hparams: dict,):
                 for name, param in model.named_parameters():
                     if "weight" in name and param.requires_grad:
                         if "bn" not in name:
-                            writer.add_histogram(name, param, epoch)
-                            writer.add_histogram(name + ".grad", param.grad, epoch)
+                            if "lateral" not in name or hparams["steps"] > 1:
+                                writer.add_histogram(name, param, epoch)
+                                writer.add_histogram(name + ".grad", param.grad, epoch)
 
             print(f"{phase} Loss: {epoch_loss:.4} Acc: {epoch_acc:.5}")
 
