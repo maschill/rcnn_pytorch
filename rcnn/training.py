@@ -16,8 +16,7 @@ from rcnn import Bl_resnet
 from rcnn import CIFAR10
 
 
-# @joesef: einzelnes komma? mehr parameter im docstring?
-def training(hparams: dict,):
+def training(hparams: dict):
     """trains a model 
 
     Args:
@@ -56,17 +55,18 @@ def training(hparams: dict,):
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
     print(f"{num_params/1000000:.4}M")
-    output_subdir = Path("cifar10") \
-        / f"{model.mname}_{num_params/1000000:.2}M" \
-        / f"{num_epochs}_ep" \
-        / f"BS_{batch_size}_occlusion_test" \
-        / f"lr_{hparams['lr_start']}_threshold-{hparams['threshold']}" \
+    output_subdir = (
+        Path("cifar10")
+        / f"{model.mname}_{num_params/1000000:.2}M"
+        / f"{num_epochs}_ep"
+        / f"BS_{batch_size}_occlusion_test"
+        / f"lr_{hparams['lr_start']}_threshold-{hparams['threshold']}"
         / starttime
+    )
 
     writer_path = Path("Runs") / output_subdir
     writer = SummaryWriter(str(writer_name.resolve()))
     writer.add_graph(model, torch.zeros(1, 3, 32, 32).cuda(), verbose=False)
-
 
     # for tensorboard:
     hparams["recurrence"] = "".join([str(int(i)) for i in hparams["recurrence"]])
