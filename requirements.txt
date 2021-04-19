@@ -10,3 +10,4 @@ tensorboard
 future
 jupyter
 jupyter_contrib_nbextensions
+tqdm
