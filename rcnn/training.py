@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 import time
 import torch
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,6 +16,7 @@ from rcnn import Bl_resnet
 from rcnn import CIFAR10
 
 
+# @joesef: einzelnes komma? mehr parameter im docstring?
 def training(hparams: dict,):
     """trains a model 
 
@@ -54,15 +56,17 @@ def training(hparams: dict,):
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
     print(f"{num_params/1000000:.4}M")
-    writer_name = "Runs/cifar10"
-    writer_name += f"/{model.mname}_{num_params/1000000:.2}M"
-    writer_name += f"/{num_epochs}_ep"
-    writer_name += f"/BS_{batch_size}_occlusion_test"
-    writer_name += f"/lr_{hparams['lr_start']}_threshold-{hparams['threshold']}"
-    writer_name += "/" + starttime
+    output_subdir = Path("cifar10") \
+        / f"{model.mname}_{num_params/1000000:.2}M" \
+        / f"{num_epochs}_ep" \
+        / f"BS_{batch_size}_occlusion_test" \
+        / f"lr_{hparams['lr_start']}_threshold-{hparams['threshold']}" \
+        / starttime
 
-    writer = SummaryWriter(writer_name)
-    writer.add_graph(model, torch.ones(1, 3, 32, 32).cuda(), verbose=False)
+    writer_path = Path("Runs") / output_subdir
+    writer = SummaryWriter(str(writer_name.resolve()))
+    writer.add_graph(model, torch.zeros(1, 3, 32, 32).cuda(), verbose=False)
+
 
     # for tensorboard:
     hparams["recurrence"] = "".join([str(int(i)) for i in hparams["recurrence"]])
@@ -129,7 +133,7 @@ def training(hparams: dict,):
 
     print("saving model")
 
-    ckpt_path = "ckpt/" + "/".join(writer_name.split("/")[1:])
+    ckpt_path = Path("ckpt") / output_subdir
 
     os.makedirs(ckpt_path)
     torch.save(model.state_dict(), ckpt_path + "/model.pt")
