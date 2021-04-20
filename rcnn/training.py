@@ -65,7 +65,7 @@ def training(hparams: dict):
     )
 
     writer_path = Path("Runs") / output_subdir
-    writer = SummaryWriter(str(writer_name.resolve()))
+    writer = SummaryWriter(str(writer_path.resolve()))
     writer.add_graph(model, torch.zeros(1, 3, 32, 32).cuda(), verbose=False)
 
     # for tensorboard:
@@ -136,7 +136,7 @@ def training(hparams: dict):
     ckpt_path = Path("ckpt") / output_subdir
 
     os.makedirs(ckpt_path)
-    torch.save(model.state_dict(), ckpt_path + "/model.pt")
+    torch.save(model.state_dict(), ckpt_path / "model.pt")
 
     print("... validating ...")
     for occ_mode in ["cutout", "noise"]:

@@ -18,7 +18,6 @@ class CIFAR10(DataContainer):
         """Container for CIFAR10 dataset that provides a train, test 
             and val dataloader 
 
-
         Args:
             batch_size (int): batch size
             s (int, optional): size argument used for occlusion transform 
