@@ -91,11 +91,11 @@ class Bl_resnet(nn.Module):
         # init res con
         if self.residual:
             self.res1bn = nn.BatchNorm2d(block1_filters)
-            self.res1 = nn.Conv2d(block0_filters, block1_filters, 3, padding=1)
+            self.res1 = nn.Conv2d(block0_filters, block1_filters, 1, padding=1)
             self.res2bn = nn.BatchNorm2d(block2_filters)
-            self.res2 = nn.Conv2d(block1_filters, block2_filters, 3, padding=1)
+            self.res2 = nn.Conv2d(block1_filters, block2_filters, 1, padding=1)
             self.res3bn = nn.BatchNorm2d(block3_filters)
-            self.res3 = nn.Conv2d(block2_filters, block3_filters, 3, padding=1)
+            self.res3 = nn.Conv2d(block2_filters, block3_filters, 1, padding=1)
 
         # init for output block
         self.avgpool = nn.ModuleList(

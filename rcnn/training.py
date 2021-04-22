@@ -13,6 +13,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from rcnn import Bl_resnet
+from rcnn import Bl_model
 from rcnn import CIFAR10
 
 
@@ -28,13 +29,16 @@ def training(hparams: dict):
 
     device = torch.device("cuda")
 
-    model = Bl_resnet(
-        10,
-        steps=hparams["steps"],
-        threshold=torch.FloatTensor(hparams["threshold"]).to(device),
-        recurrence=hparams["recurrence"],
-        residual=hparams["residual"],
-    ).to(device)
+    model = Bl_model(10, steps=hparams["steps"]).to(device)
+
+    # model = Bl_resnet(
+    #     10,
+    #     steps=hparams["steps"],
+    #     threshold=torch.FloatTensor(hparams["threshold"]).to(device),
+    #     recurrence=hparams["recurrence"],
+    #     residual=hparams["residual"],
+    # ).to(device)
+
     dl = CIFAR10(batch_size, s=hparams["occlusion_size"])
     dataloaders = dl.dl_dict()
     dataset_sizes = dl.sizes
@@ -59,7 +63,7 @@ def training(hparams: dict):
         Path("cifar10")
         / f"{model.mname}_{num_params/1000000:.2}M"
         / f"{num_epochs}_ep"
-        / f"BS_{batch_size}_occlusion_test"
+        / f"BS_{batch_size}_occlusion_{hparams['occlusion_size']}"
         / f"lr_{hparams['lr_start']}_threshold-{hparams['threshold']}"
         / starttime
     )
