@@ -29,15 +29,15 @@ def training(hparams: dict):
 
     device = torch.device("cuda")
 
-    model = Bl_model(10, steps=hparams["steps"]).to(device)
+    # model = Bl_model(10, steps=hparams["steps"]).to(device)
 
-    # model = Bl_resnet(
-    #     10,
-    #     steps=hparams["steps"],
-    #     threshold=torch.FloatTensor(hparams["threshold"]).to(device),
-    #     recurrence=hparams["recurrence"],
-    #     residual=hparams["residual"],
-    # ).to(device)
+    model = Bl_resnet(
+        10,
+        steps=hparams["steps"],
+        threshold=torch.FloatTensor(hparams["threshold"]).to(device),
+        recurrence=hparams["recurrence"],
+        residual=hparams["residual"],
+    ).to(device)
 
     dl = CIFAR10(batch_size, s=hparams["occlusion_size"])
     dataloaders = dl.dl_dict()
