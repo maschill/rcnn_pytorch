@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
+from collections import OrderedDict
 from torch import device
 
 
@@ -44,52 +45,70 @@ class Bl_model(nn.Module):
         # init for input block
         block0_filters = 64
         self.input_block = nn.Sequential(
-            nn.Conv2d(input_dim[-1], block0_filters, kernel_size=3, padding=1),
-            nn.BatchNorm2d(block0_filters),
-            nn.ReLU(inplace=True),
+            OrderedDict(
+                [
+                    (
+                        "conv0",
+                        nn.Conv2d(
+                            input_dim[-1], block0_filters, kernel_size=3, padding=1
+                        ),
+                    ),
+                    ("bn0", nn.BatchNorm2d(block0_filters)),
+                    ("relu0", nn.ReLU(inplace=True)),
+                ]
+            )
         )
 
         self.maxpool = nn.MaxPool2d(2)
 
-        # init for first block, nn.ModuleList so the model sees the layer in the list
+        # init for first block, nn.ModuleDict so the model sees the layer in the list
         block1_filters = 128
+        self.relu1 = nn.ReLU(inplace=True)
+        self.relu21 = nn.ReLU(inplace=True)
         self.conv1 = nn.Conv2d(block0_filters, block1_filters, 3, padding=1)
         self.conv12 = nn.Conv2d(block1_filters, block1_filters, 3, padding=1)
         self.lateral1 = nn.Conv2d(block1_filters, block1_filters, 3, padding=1)
-        self.bn1 = nn.ModuleList(
-            [nn.BatchNorm2d(block1_filters) for _ in range(self.max_steps)]
+        self.bn1 = nn.ModuleDict(
+            {f"bn1_{i}": nn.BatchNorm2d(block1_filters) for i in range(self.max_steps)}
         )
-        self.bn12 = nn.ModuleList(
-            [nn.BatchNorm2d(block1_filters) for _ in range(self.max_steps)]
+        self.bn12 = nn.ModuleDict(
+            {f"bn12_{i}": nn.BatchNorm2d(block1_filters) for i in range(self.max_steps)}
         )
 
         # init for second block
         block2_filters = 256
+        self.relu2 = nn.ReLU(inplace=True)
+        self.relu22 = nn.ReLU(inplace=True)
         self.conv2 = nn.Conv2d(block1_filters, block2_filters, 3, padding=1)
         self.conv22 = nn.Conv2d(block2_filters, block2_filters, 3, padding=1)
         self.lateral2 = nn.Conv2d(block2_filters, block2_filters, 3, padding=1)
-        self.bn2 = nn.ModuleList(
-            [nn.BatchNorm2d(block2_filters) for _ in range(self.max_steps)]
+        self.bn2 = nn.ModuleDict(
+            {f"bn2_{i}": nn.BatchNorm2d(block2_filters) for i in range(self.max_steps)}
         )
-        self.bn22 = nn.ModuleList(
-            [nn.BatchNorm2d(block2_filters) for _ in range(self.max_steps)]
+        self.bn22 = nn.ModuleDict(
+            {f"bn22_{i}": nn.BatchNorm2d(block2_filters) for i in range(self.max_steps)}
         )
 
         # init for second block
         block3_filters = 512
+        self.relu3 = nn.ReLU(inplace=True)
+        self.relu32 = nn.ReLU(inplace=True)
         self.conv3 = nn.Conv2d(block2_filters, block3_filters, 3, padding=1)
         self.conv32 = nn.Conv2d(block3_filters, block3_filters, 3, padding=1)
         self.lateral3 = nn.Conv2d(block3_filters, block3_filters, 3, padding=1)
-        self.bn3 = nn.ModuleList(
-            [nn.BatchNorm2d(block3_filters) for _ in range(self.max_steps)]
+        self.bn3 = nn.ModuleDict(
+            {f"bn3_{i}": nn.BatchNorm2d(block3_filters) for i in range(self.max_steps)}
         )
-        self.bn32 = nn.ModuleList(
-            [nn.BatchNorm2d(block3_filters) for _ in range(self.max_steps)]
+        self.bn32 = nn.ModuleDict(
+            {f"bn32_{i}": nn.BatchNorm2d(block3_filters) for i in range(self.max_steps)}
         )
 
         # init for classifier
-        self.avgpool = nn.ModuleList(
-            [nn.AdaptiveAvgPool2d((1, 1)) for _ in range(self.max_steps)]
+        self.avgpool = nn.ModuleDict(
+            {
+                f"avgpool_{i}": nn.AdaptiveAvgPool2d((1, 1))
+                for i in range(self.max_steps)
+            }
         )
         self.linear = nn.Linear(block2_filters, num_classes)
 
@@ -111,28 +130,28 @@ class Bl_model(nn.Module):
 
         x_in = self.conv1(x)
         x1 = self.bn1[0](x_in)
-        x1 = F.relu(x1)
+        x1 = self.relu1(x1)
         x1 = self.conv12(x1)
         x1 = self.bn12[0](x1)
-        x1 = F.relu(x1)
+        x1 = self.relu12(x1)
 
         xm2 = self.maxpool(x1)
 
         x2_sum = self.conv2(xm2)
         x2 = self.bn2[0](x2_sum)
-        x2 = F.relu(x2)
+        x2 = self.relu2(x2)
         x2 = self.conv22(x2)
         x2 = self.bn22[0](x2)
-        x2 = F.relu(x2)
+        x2 = self.relu22(x2)
 
         xm3 = self.maxpool(x2)
 
         x3_sum = self.conv2(xm3)
         x3 = self.bn3[0](x3_sum)
-        x3 = F.relu(x3)
+        x3 = self.relu3(x3)
         x3 = self.conv32(x3)
         x3 = self.bn32[0](x3)
-        x3 = F.relu(x3)
+        x3 = self.relu32(x3)
 
         out = self.avgpool[0](x3)
         out = out.view(out.size()[0], -1)
@@ -144,10 +163,10 @@ class Bl_model(nn.Module):
             x1 = self.lateral1(x1)
             x1_sum = x_in + x1
             x1 = self.bn1[t](x1_sum)
-            x1 = F.relu(x1)
+            x1 = self.relu1(x1)
             x1 = self.conv12(x1)
             x1 = self.bn12[t](x1)
-            x1 = F.relu(x1)
+            x1 = self.relu12(x1)
 
             xm2 = self.maxpool(x1)
 
@@ -155,10 +174,10 @@ class Bl_model(nn.Module):
             x2_sum = self.conv2(xm2)
             x2_sum = x2_sum + xl2
             x2 = self.bn2[t](x2_sum)
-            x2 = F.relu(x2)
+            x2 = self.relu2(x2)
             x2 = self.conv22(x2)
             x2 = self.bn22[t](x2)
-            x2 = F.relu(x2)
+            x2 = self.relu22(x2)
 
             xm3 = self.maxpool(x2)
 
@@ -166,10 +185,10 @@ class Bl_model(nn.Module):
             x3_sum = self.conv3(xm3)
             x3_sum = x3_sum + xl3
             x3 = self.bn3[t](x3_sum)
-            x3 = F.relu(x3)
+            x3 = self.relu3(x3)
             x3 = self.conv32(x3)
             x3 = self.bn32[t](x3)
-            x3 = F.relu(x3)
+            x3 = self.relu32(x3)
 
             out = self.avgpool[t](x3)
 
