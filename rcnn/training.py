@@ -71,7 +71,7 @@ def training(hparams: dict):
     writer_path = Path("Runs") / output_subdir
     writer = SummaryWriter(str(writer_path.resolve()))
     writer.add_graph(model, torch.zeros(1, 3, 32, 32).cuda(), verbose=False)
-
+    writer.flush()
     # for tensorboard:
     hparams["recurrence"] = "".join([str(int(i)) for i in hparams["recurrence"]])
 

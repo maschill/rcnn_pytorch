@@ -5,5 +5,5 @@ docker run \
     --env="DISPLAY" \
     --runtime=nvidia \
     -v /path/to/rcnn_pytorch:/app \
-    pytorch17 python /app/run.py
+    pytorch18_1 python /app/run.py
 
