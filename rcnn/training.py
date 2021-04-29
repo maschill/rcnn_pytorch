@@ -115,7 +115,8 @@ def training(hparams: dict):
                             loss.backward()
                             optimizer.step()
                             lr_scheduler.step()
-                        profiler.step()
+                        if epoch == 0:
+                            profiler.step()
 
                     running_loss += loss.item() * inputs.size(0)
                     running_corrects += torch.sum(preds == labels.data)
