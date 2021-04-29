@@ -81,4 +81,3 @@ RUN echo $(python3 -c "import numpy; print(numpy.get_include())")
 RUN ln -s /opt/conda/lib/python3.8/site-packages/cv2/python-3.8/cv2.cpython-38m-x86_64-linux-gnu.so /opt/conda/lib/python3.8/site-packages/cv2/python-3.8/cv2.so
 
 WORKDIR /app
-RUN conda list tensor

@@ -10,4 +10,5 @@ tensorboard
 future
 jupyter
 jupyter_contrib_nbextensions
+torch_tb_profiler
 tqdm

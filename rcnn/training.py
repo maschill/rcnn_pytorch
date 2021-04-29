@@ -12,6 +12,7 @@ import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
+
 from rcnn import Bl_resnet
 from rcnn import Bl_model
 from rcnn import CIFAR10
@@ -74,6 +75,9 @@ def training(hparams: dict):
     writer.flush()
     # for tensorboard:
     hparams["recurrence"] = "".join([str(int(i)) for i in hparams["recurrence"]])
+    tb_profile_trace_handler = torch.profiler.tensorboard_trace_handler(
+        str(writer_path.resolve())
+    )
 
     for epoch in range(num_epochs):
         current_lr = optimizer.param_groups[0]["lr"]
@@ -91,25 +95,30 @@ def training(hparams: dict):
             running_corrects = 0
 
             tot = dataset_sizes[phase] // batch_size
-            for batch, (inputs, labels) in tqdm(
-                enumerate(dataloaders[phase]), total=tot
-            ):
-                inputs = inputs.to(device)
-                labels = labels.to(device)
+            with torch.profiler.profile(
+                schedule=torch.profiler.schedule(wait=2, warmup=2, active=3, repeat=1),
+                on_trace_ready=tb_profile_trace_handler,
+            ) as profiler:
+                for batch, (inputs, labels) in tqdm(
+                    enumerate(dataloaders[phase]), total=tot
+                ):
+                    inputs = inputs.to(device)
+                    labels = labels.to(device)
 
-                optimizer.zero_grad()
+                    optimizer.zero_grad()
 
-                with torch.set_grad_enabled(phase == "train"):
-                    outputs = model(inputs)
-                    _, preds = torch.max(outputs[-1], 1)
-                    loss = sum([criterion(o, labels) for o in outputs])
-                    if phase == "train":
-                        loss.backward()
-                        optimizer.step()
-                        lr_scheduler.step()
+                    with torch.set_grad_enabled(phase == "train"):
+                        outputs = model(inputs)
+                        _, preds = torch.max(outputs[-1], 1)
+                        loss = sum([criterion(o, labels) for o in outputs])
+                        if phase == "train":
+                            loss.backward()
+                            optimizer.step()
+                            lr_scheduler.step()
+                        profiler.step()
 
-                running_loss += loss.item() * inputs.size(0)
-                running_corrects += torch.sum(preds == labels.data)
+                    running_loss += loss.item() * inputs.size(0)
+                    running_corrects += torch.sum(preds == labels.data)
 
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
