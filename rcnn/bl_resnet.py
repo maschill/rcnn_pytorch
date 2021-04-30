@@ -138,13 +138,13 @@ class Bl_resnet(nn.Module):
                 }
             )
             self.res1 = nn.Conv2d(block0_filters, block1_filters, 3, padding=1)
-            self.res2bn = nn.ModuleDict(
-                {
-                    f"res2bn_{i}": nn.BatchNorm2d(block2_filters)
-                    for i in range(0, self.max_steps)
-                }
-            )
-            self.res2 = nn.Conv2d(block1_filters, block2_filters, 3, padding=1)
+            # self.res2bn = nn.ModuleDict(
+            #     {
+            #         f"res2bn_{i}": nn.BatchNorm2d(block2_filters)
+            #         for i in range(0, self.max_steps)
+            #     }
+            # )
+            # self.res2 = nn.Conv2d(block1_filters, block2_filters, 3, padding=1)
             self.res3bn = nn.ModuleDict(
                 {
                     f"res3bn_{i}": nn.BatchNorm2d(block3_filters)
@@ -206,10 +206,10 @@ class Bl_resnet(nn.Module):
             x2 = self.conv22(x2)
             x2 = self.bn22[f"bn22_{t}"](x2)
             x2 = self.relu22(x2)
-            if self.residual:
-                res2 = self.res2(x12)
-                res2 = self.res2bn[f"res2bn_{t}"](res2)
-                x2 = x2 + res2
+            # if self.residual:
+            #     res2 = self.res2(x12)
+            #     res2 = self.res2bn[f"res2bn_{t}"](res2)
+            #     x2 = x2 + res2
             if self.recurrence[1] and t < self.max_steps:  # don't calc in last step
                 l2 = self.lateral2(x2)
 
