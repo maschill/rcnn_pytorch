@@ -239,6 +239,7 @@ class Bl_resnet(nn.Module):
             ent = calc_entropy(out)
 
             if torch.lt(ent, self.threshold[0]):
+                print(ent.item())
                 break
 
         return tuple(outputs)

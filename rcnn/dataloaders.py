@@ -46,6 +46,7 @@ class CIFAR10(DataContainer):
             train_ds,
             batch_size=batch_size,
             shuffle=True,
+            pin_memory=True,
             num_workers=4,
             worker_init_fn=winit,
         )
@@ -63,6 +64,7 @@ class CIFAR10(DataContainer):
             ),
             batch_size=batch_size,
             shuffle=True,
+            pin_memory=True,
             num_workers=4,
             worker_init_fn=winit,
         )
@@ -81,6 +83,7 @@ class CIFAR10(DataContainer):
             ),
             batch_size=batch_size,
             shuffle=True,
+            pin_memory=True,
             num_workers=4,
             worker_init_fn=winit,
         )
@@ -124,5 +127,7 @@ class CIFAR10(DataContainer):
             ),
             batch_size=self.batch_size // 2,
             shuffle=True,
+            pin_memory=True,
             num_workers=4,
+            worker_init_fn=winit,\
         )

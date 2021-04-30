@@ -105,7 +105,7 @@ def training(hparams: dict):
                     inputs = inputs.to(device)
                     labels = labels.to(device)
 
-                    optimizer.zero_grad()
+                    optimizer.zero_grad(set_to_none=True)
 
                     with torch.set_grad_enabled(phase == "train"):
                         outputs = model(inputs)
