@@ -129,5 +129,5 @@ class CIFAR10(DataContainer):
             shuffle=True,
             pin_memory=True,
             num_workers=4,
-            worker_init_fn=winit,\
+            worker_init_fn=winit,
         )

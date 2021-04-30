@@ -29,13 +29,12 @@ def training(hparams: dict):
     num_epochs = hparams["num_epochs"]
 
     device = torch.device("cuda")
-
     # model = Bl_model(10, steps=hparams["steps"]).to(device)
 
     model = Bl_resnet(
         10,
         steps=hparams["steps"],
-        threshold=torch.FloatTensor(hparams["threshold"]).to(device),
+        threshold=torch.FloatTensor(int(hparams["threshold"])).to(device),
         recurrence=hparams["recurrence"],
         residual=hparams["residual"],
     ).to(device)
