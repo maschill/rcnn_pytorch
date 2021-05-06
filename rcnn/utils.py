@@ -82,7 +82,7 @@ def find_lr(model: nn.Module, dataloaders: DataContainer) -> Tuple[float, float]
     )
     plt.xscale("log")
     plt.legend()
-    plt.savefig("lrfinder.png")
+    plt.savefig(f"lrfinder_{model.mname}.png")
     print(f"min_loss at LR {lmin}")
     print(f"steepest grad at {gmax}")
 
