@@ -41,10 +41,7 @@ def training(hparams: dict):
     ).to(device)
 
     dataloaders = CIFAR10(batch_size, s=hparams["occlusion_size"])
-    dataset_sizes = dl.sizes
 
-    find_lr(model, dataloaders)
-    return 0
     t0 = time.time()
 
     criterion = nn.CrossEntropyLoss()
@@ -54,7 +51,7 @@ def training(hparams: dict):
         optimizer,
         hparams["lr_start"],
         epochs=num_epochs,
-        steps_per_epoch=(dataset_sizes["train"] // batch_size),
+        steps_per_epoch=(dataloaders.sizes["train"] // batch_size),
     )
 
     starttime = f"started_{datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
@@ -95,7 +92,7 @@ def training(hparams: dict):
             running_loss = 0.0
             running_corrects = 0
 
-            tot = dataset_sizes[phase] // batch_size
+            tot = dataloaders.sizes[phase] // batch_size
             with torch.profiler.profile(
                 schedule=torch.profiler.schedule(wait=2, warmup=2, active=3, repeat=1),
                 on_trace_ready=tb_profile_trace_handler,
@@ -122,8 +119,8 @@ def training(hparams: dict):
                     running_loss += loss.item() * inputs.size(0)
                     running_corrects += torch.sum(preds == labels.data)
 
-            epoch_loss = running_loss / dataset_sizes[phase]
-            epoch_acc = running_corrects.double() / dataset_sizes[phase]
+            epoch_loss = running_loss / dataloaders.sizes[phase]
+            epoch_acc = running_corrects.double() / dataloaders.sizes[phase]
 
             # tensorboard stuff
             writer.add_scalar("Loss/" + phase, epoch_loss, epoch)
@@ -156,7 +153,7 @@ def training(hparams: dict):
     print("... validating ...")
     for occ_mode in ["cutout", "noise"]:
         model.eval()
-        tot = dataset_sizes["val"] // batch_size * 2
+        tot = dataloaders.sizes["val"] // batch_size * 2
         # 1024 total pixels > 1 % ~ 10
         for p, occ in enumerate([10 * i for i in range(0, 20)]):
             # init stuff
@@ -175,8 +172,8 @@ def training(hparams: dict):
                 run_val_loss += loss.item() * inputs.size(0)
                 run_val_acc += torch.sum(preds == labels.data)
 
-            val_loss = run_val_loss / dataset_sizes["val"]
-            val_acc = run_val_acc.double() / dataset_sizes["val"]
+            val_loss = run_val_loss / dataloaders.sizes["val"]
+            val_acc = run_val_acc.double() / dataloaders.sizes["val"]
             print(f"Validation Loss: {val_loss:.4} Acc: {val_acc:.5}")
 
             metric_dict = {

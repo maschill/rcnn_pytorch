@@ -72,6 +72,7 @@ def find_lr(model: nn.Module, dataloaders: DataContainer) -> Tuple[float, float]
         float(lrs[lsmooth.argmin()].item() / 10),
     )
 
+    plt.figure()
     plt.plot(
         lrs.detach().cpu().numpy(), losses[w2:-w2].detach().cpu().numpy(), label="raw"
     )
