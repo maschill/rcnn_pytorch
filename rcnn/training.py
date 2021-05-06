@@ -16,6 +16,7 @@ from tqdm import tqdm
 from rcnn import Bl_resnet
 from rcnn import Bl_model
 from rcnn import CIFAR10
+from rcnn import find_lr
 
 
 def training(hparams: dict):
@@ -34,15 +35,16 @@ def training(hparams: dict):
     model = Bl_resnet(
         10,
         steps=hparams["steps"],
-        threshold=torch.FloatTensor(int(hparams["threshold"])).to(device),
+        threshold=torch.ones(8, device=device) * int(hparams["threshold"]),
         recurrence=hparams["recurrence"],
         residual=hparams["residual"],
     ).to(device)
 
-    dl = CIFAR10(batch_size, s=hparams["occlusion_size"])
-    dataloaders = dl.dl_dict()
+    dataloaders = CIFAR10(batch_size, s=hparams["occlusion_size"])
     dataset_sizes = dl.sizes
 
+    find_lr(model, dataloaders)
+    return 0
     t0 = time.time()
 
     criterion = nn.CrossEntropyLoss()
@@ -160,8 +162,10 @@ def training(hparams: dict):
             # init stuff
             run_val_loss = 0.0
             run_val_acc = 0.0
-            dl.update_val_loader(occ, mode=occ_mode)
-            for batch, (inputs, labels) in tqdm(enumerate(dl.val_loader), total=tot):
+            dataloaders.update_val_loader(occ, mode=occ_mode)
+            for batch, (inputs, labels) in tqdm(
+                enumerate(dataloaders.val_loader), total=tot
+            ):
                 inputs = inputs.to(device)
                 labels = labels.to(device)
                 outputs = model(inputs)
@@ -184,7 +188,7 @@ def training(hparams: dict):
 
             writer.add_hparams(hparams, metric_dict, run_name="ht")
             writer.flush()
-            if val_acc < 0.1:
+            if val_acc < 0.11:
                 print(f"finished {occ_mode}----------------------")
                 break
 
