@@ -100,6 +100,9 @@ class CIFAR10(DataContainer):
             "test": len(self.test_loader) * batch_size,
         }
 
+    def __getitem__(self, key):
+        return self.loader_dict[key]
+
     def dl_dict(self):
         """returns the dataloaders in a dict"""
         return self.loader_dict
