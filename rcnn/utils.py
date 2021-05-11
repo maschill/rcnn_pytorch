@@ -16,12 +16,29 @@ from rcnn import DataContainer
 matplotlib.use("Agg")
 
 
-def winit(w_id):
-    """https://tanelp.github.io/posts/a-bug-that-plagues-thousands-of-open-source-ml-projects/"""
+def winit(w_id: int):
+    """helper function that creates a np.random seed that is different for 
+        each worker used in a pytorch DataLoader. For more infos check
+        https://tanelp.github.io/posts/a-bug-that-plagues-thousands-of-open-source-ml-projects/
+
+    Args:
+        w_id (int): id of the created worker
+    """
     np.random.seed(np.random.get_state()[1][0] + w_id)
 
 
 def find_lr(model: nn.Module, dataloaders: DataContainer) -> Tuple[float, float]:
+    """Tests a range of 10e-8 to 2 to find a good learning rate 
+
+    Args:
+        model (nn.Module): the model the lr is used for
+        dataloaders (DataContainer): the DataContainer that supplies the data
+
+    Returns:
+        Tuple[float, float]: two candidates for a learning rate.
+                            The one with the steepest gradient and 
+                            the one with the smallest loss
+    """
     lr_start = 10e-8
     lr_end = 2
 
@@ -91,20 +108,34 @@ def find_lr(model: nn.Module, dataloaders: DataContainer) -> Tuple[float, float]
 
 
 def calc_entropy(input_tensor: torch.Tensor) -> torch.Tensor:
-    """
+    """calculates the entropy of a Tensor, code from
     https://github.com/pytorch/pytorch/issues/15829#issuecomment-725347711
-    """
 
+    Args:
+        input_tensor (torch.Tensor): Tensor the entropy is calculated of
+
+    Returns:
+        torch.Tensor: The entropy of the input_tensor
+    """
     lsm = nn.LogSoftmax(dim=1).to("cuda")
     log_probs = lsm(input_tensor)
     probs = torch.exp(log_probs)
     p_log_p = log_probs * probs
+    # Multiplying by 1000 to bring it to a better range.
     entropy = -p_log_p.mean() * 1000
-    # Multiplying by 1000 to bring it to 1-10 range.
     return entropy
 
 
 def rand_arr(max_occ: int = 32) -> Generator[int, None, None]:
+    """Generator that bulk creates random numbers and returns them one by one
+        for the Occlusion transformation, to redus np.random calls 
+
+    Args:
+        max_occ (int, optional): maximum value. Defaults to 32.
+
+    Yields:
+        Generator[int, None, None]: a generator that yields a random int
+    """
     while True:
         randr = np.random.randint(0, max_occ, 500000)
         for i in randr:
@@ -112,16 +143,36 @@ def rand_arr(max_occ: int = 32) -> Generator[int, None, None]:
 
 
 class Occlusion:
-    def __init__(self, mode: str = "cutout", size: int = 4):
+    """Tranformation to add occlusion to the preprocessing"""
+
+    def __init__(self, mode: str = "cutout", size: int = 4, val: int = 150):
+        """
+        Args:
+            mode (str, optional): occlusion mode, can be "cutout" or "noise.
+                                Defaults to "cutout".
+            size (int, optional): the amount of occlusion used. Percantage
+                                of occluded pixels in noise or side length
+                                in pixels of occluded square in "cutout" .
+                                Defaults to 4.
+            val (int, optional): [description].Color val of occlusion. Defaults to 150.
+        """
         self.mode = mode
         self.size = size
-        self.val = 150
+        self.val = val
         if mode == "cutout":
             self.rand = iter(rand_arr(max_occ=max(1, 32 - size)))
         else:
             self.rand = iter(rand_arr(max_occ=max(1, 30)))
 
     def __call__(self, img: torch.Tensor) -> torch.Tensor:
+        """adds occlusion to input image
+
+        Args:
+            img (torch.Tensor): input image
+
+        Returns:
+            torch.Tensor: input image with occlusion
+        """
         if self.mode == "cutout":
             ix, iy = next(self.rand), next(self.rand)
             img[:, ix : ix + self.size, iy : iy + self.size] = self.val

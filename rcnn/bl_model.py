@@ -105,7 +105,7 @@ class Bl_model(nn.Module):
             {f"bn22_{i}": nn.BatchNorm2d(block2_filters) for i in range(self.max_steps)}
         )
 
-        # init for second block
+        # init for third block
         block3_filters = 512
         self.relu31 = nn.ReLU(inplace=True)
         self.relu32 = nn.ReLU(inplace=True)
