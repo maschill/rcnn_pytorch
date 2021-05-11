@@ -15,14 +15,14 @@
         1,
         3
     ],
-    "recurrence": [
+    "recurrence": [ 
         [
             1,
             1,
             1
         ]
     ],
-    "residual": [
+    "residual": [ 
         0
     ],
     "batch_size": [
