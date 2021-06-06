@@ -132,7 +132,7 @@ def training(hparams: dict):
                 for name, param in model.named_parameters():
                     if "weight" in name and param.requires_grad:
                         if "bn" not in name:
-                            if "lateral" not in name:
+                            if "lateral" not in name and "feedback" not in name:
                                 writer.add_histogram(name, param, epoch)
                                 writer.add_histogram(name + ".grad", param.grad, epoch)
 

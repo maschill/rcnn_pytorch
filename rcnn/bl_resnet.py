@@ -42,9 +42,7 @@ class Bl_resnet(nn.Module):
         self.max_steps = steps
         self.threshold = threshold
         mtype = "resnet" if residual else "noresnet"
-        self.mname = (
-            f"bl{''.join([str(int(r)) for r in recurrence])}_{mtype}_{steps}steps"
-        )
+        self.mname = f"blt{''.join([str(int(r)) for r in recurrence])}_{mtype}_deconv_{steps}steps"
         self.residual = residual
         self.recurrence = recurrence
 
@@ -84,7 +82,7 @@ class Bl_resnet(nn.Module):
         self.maxpool12 = pooling(2)
 
         if self.recurrence[0]:
-            self.lateral1 = nn.Conv2d(block1_filters, block1_filters, 3, padding=1)
+            self.lateral1 = nn.Conv2d(block1_filters, block1_filters, 1, padding=0)
 
         # init for second block
         self.relu21 = nn.ReLU(inplace=True)
@@ -106,7 +104,10 @@ class Bl_resnet(nn.Module):
         self.maxpool23 = pooling(2)
 
         if self.recurrence[1]:
-            self.lateral2 = nn.Conv2d(block2_filters, block2_filters, 3, padding=1)
+            self.lateral2 = nn.Conv2d(block2_filters, block2_filters, 1, padding=0)
+            self.feedback2 = nn.ConvTranspose2d(
+                block2_filters, block1_filters, 3, output_padding=1, padding=1, stride=2
+            )
 
         # init for third block
         self.relu31 = nn.ReLU(inplace=True)
@@ -127,7 +128,10 @@ class Bl_resnet(nn.Module):
         )
 
         if self.recurrence[2]:
-            self.lateral3 = nn.Conv2d(block3_filters, block3_filters, 3, padding=1)
+            self.lateral3 = nn.Conv2d(block3_filters, block3_filters, 1, padding=0)
+            self.feedback3 = nn.ConvTranspose2d(
+                block3_filters, block2_filters, 3, output_padding=1, padding=1, stride=2
+            )
 
         # init res con
         if self.residual:
@@ -179,11 +183,14 @@ class Bl_resnet(nn.Module):
         l1 = 0
         l2 = 0
         l3 = 0
+        fb2 = 0
+        fb3 = 0
 
         for t in range(0, self.max_steps):
             x1sum = x_in
             if self.recurrence[0]:
                 x1sum = x1sum + l1
+                x1sum = x1sum + fb2
             x1 = self.bn11[f"bn11_{t}"](x1sum)
             x1 = self.relu11(x1)
             x1 = self.conv12(x1)
@@ -201,6 +208,7 @@ class Bl_resnet(nn.Module):
             x2sum = self.conv21(x12)
             if self.recurrence[1]:
                 x2sum = x2sum + l2
+                x2sum = x2sum + fb3
             x2 = self.bn21[f"bn21_{t}"](x2sum)
             x2 = self.relu21(x2)
             x2 = self.conv22(x2)
@@ -212,6 +220,7 @@ class Bl_resnet(nn.Module):
                 x2 = x2 + res2
             if self.recurrence[1] and t < self.max_steps:  # don't calc in last step
                 l2 = self.lateral2(x2)
+                fb2 = self.feedback2(x2)
 
             x23 = self.maxpool23(x2)
 
@@ -229,6 +238,7 @@ class Bl_resnet(nn.Module):
                 x3 = x3 + res3
             if self.recurrence[2] and t < self.max_steps:  # don't calc in last step
                 l3 = self.lateral3(x3)
+                fb3 = self.feedback3(x3)
 
             out = self.avgpool[f"avgpool_{t}"](x3)
             out = out.view(out.size()[0], -1)

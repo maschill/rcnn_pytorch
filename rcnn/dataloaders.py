@@ -58,6 +58,7 @@ class CIFAR10(DataContainer):
                 transform=transforms.Compose(
                     [
                         transforms.ToTensor(),
+                        Occlusion(mode=mode, size=s),
                         transforms.Normalize(CIFAR10_TRAIN_MEAN, CIFAR10_TRAIN_STD),
                     ]
                 ),
@@ -76,7 +77,7 @@ class CIFAR10(DataContainer):
                 transform=transforms.Compose(
                     [
                         transforms.ToTensor(),
-                        Occlusion(mode=mode, size=s),
+                        Occlusion(mode=mode, size=0),
                         transforms.Normalize(CIFAR10_TRAIN_MEAN, CIFAR10_TRAIN_STD),
                     ]
                 ),
