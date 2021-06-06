@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from datetime import datetime
 import os
 import time
@@ -26,10 +27,14 @@ def training(hparams: dict):
         hparams (dict): a dictionary containing the hyperparameters
     """
 
+    # currently, this is set manually to enable/disable pytorch profiler
+    activate_profiler = False
+
     batch_size = hparams["batch_size"]
     num_epochs = hparams["num_epochs"]
 
     device = torch.device("cuda")
+    # this model can be used instead
     # model = Bl_model(10, steps=hparams["steps"]).to(device)
 
     model = Bl_resnet(
@@ -73,9 +78,19 @@ def training(hparams: dict):
     writer.flush()
     # for tensorboard:
     hparams["recurrence"] = "".join([str(int(i)) for i in hparams["recurrence"]])
-    # tb_profile_trace_handler = torch.profiler.tensorboard_trace_handler(
-    #     str(writer_path.resolve())
-    # )
+
+    # select context manager for profiling, or dummy context manager
+
+    if activate_profiler:
+        tb_profile_trace_handler = torch.profiler.tensorboard_trace_handler(
+            str(writer_path.resolve())
+        )
+        cmgr = torch.profiler.profile(
+            schedule=torch.profiler.schedule(wait=2, warmup=2, active=3, repeat=1),
+            on_trace_ready=tb_profile_trace_handler,
+        )
+    else:
+        cmgr = nullcontext()
 
     for epoch in range(num_epochs):
         current_lr = optimizer.param_groups[0]["lr"]
@@ -93,11 +108,7 @@ def training(hparams: dict):
             running_corrects = 0
 
             tot = dataloaders.sizes[phase] // batch_size
-            # with torch.profiler.profile(
-            #     schedule=torch.profiler.schedule(wait=2, warmup=2, active=3, repeat=1),
-            #     on_trace_ready=tb_profile_trace_handler,
-            # ) as profiler:
-            with _ as _:
+            with cmgr as profiler:
                 for batch, (inputs, labels) in tqdm(
                     enumerate(dataloaders[phase]), total=tot
                 ):
@@ -114,8 +125,8 @@ def training(hparams: dict):
                             loss.backward()
                             optimizer.step()
                             lr_scheduler.step()
-                        # if epoch == 0:
-                        #     profiler.step()
+                        if activate_profiler and epoch == 0:
+                            profiler.step()
 
                     running_loss += loss.item() * inputs.size(0)
                     running_corrects += torch.sum(preds == labels.data)
