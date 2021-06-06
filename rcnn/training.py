@@ -73,9 +73,9 @@ def training(hparams: dict):
     writer.flush()
     # for tensorboard:
     hparams["recurrence"] = "".join([str(int(i)) for i in hparams["recurrence"]])
-    tb_profile_trace_handler = torch.profiler.tensorboard_trace_handler(
-        str(writer_path.resolve())
-    )
+    # tb_profile_trace_handler = torch.profiler.tensorboard_trace_handler(
+    #     str(writer_path.resolve())
+    # )
 
     for epoch in range(num_epochs):
         current_lr = optimizer.param_groups[0]["lr"]
@@ -93,10 +93,11 @@ def training(hparams: dict):
             running_corrects = 0
 
             tot = dataloaders.sizes[phase] // batch_size
-            with torch.profiler.profile(
-                schedule=torch.profiler.schedule(wait=2, warmup=2, active=3, repeat=1),
-                on_trace_ready=tb_profile_trace_handler,
-            ) as profiler:
+            # with torch.profiler.profile(
+            #     schedule=torch.profiler.schedule(wait=2, warmup=2, active=3, repeat=1),
+            #     on_trace_ready=tb_profile_trace_handler,
+            # ) as profiler:
+            with _ as _:
                 for batch, (inputs, labels) in tqdm(
                     enumerate(dataloaders[phase]), total=tot
                 ):
@@ -113,8 +114,8 @@ def training(hparams: dict):
                             loss.backward()
                             optimizer.step()
                             lr_scheduler.step()
-                        if epoch == 0:
-                            profiler.step()
+                        # if epoch == 0:
+                        #     profiler.step()
 
                     running_loss += loss.item() * inputs.size(0)
                     running_corrects += torch.sum(preds == labels.data)
