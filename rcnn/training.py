@@ -167,11 +167,11 @@ def training(hparams: dict):
         model.eval()
         tot = dataloaders.sizes["val"] // batch_size * 2
         # 1024 total pixels > 1 % ~ 10
-        for p, occ in enumerate([10 * i for i in range(0, 20)]):
+        for p, occ in enumerate([i for i in range(0, 200)]):
             # init stuff
             run_val_loss = 0.0
             run_val_acc = 0.0
-            dataloaders.update_val_loader(occ, mode=occ_mode)
+            dataloaders.update_val_loader(int(occ), mode=occ_mode)
             for batch, (inputs, labels) in tqdm(
                 enumerate(dataloaders.val_loader), total=tot
             ):

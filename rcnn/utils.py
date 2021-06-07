@@ -150,7 +150,7 @@ class Occlusion:
         Args:
             mode (str, optional): occlusion mode, can be "cutout" or "noise.
                                 Defaults to "cutout".
-            size (int, optional): the amount of occlusion used. Percantage
+            size (int, optional): the amount of occlusion used. Number 
                                 of occluded pixels in noise or side length
                                 in pixels of occluded square in "cutout" .
                                 Defaults to 4.
